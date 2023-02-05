@@ -26,3 +26,15 @@ app.get('/about', function(req, res) {
 const blogService = require('./blog-service.js');
 //document.write("<script language=javascript src='blog-service.js'><\/script>");
 //kill -9 <8080>
+app.get('/blog', function(req, res) {
+  res.sendFile(__dirname + '/data/posts.json');
+})
+app.get('/posts', function(req, res) {
+  res.sendFile(__dirname + '/data/posts.json');
+})
+app.get('/categories', function(req, res) {
+  res.sendFile(__dirname + '/data/categories.json');
+})
+app.get('*', (req, res) => {
+  res.status(404).send('Page Not Found');
+});
