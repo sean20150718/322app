@@ -9,32 +9,50 @@
 *
 ********************************************************************************/ 
 
+
 var express = require("express");
 var app = express();
 var HTTP_PORT = process.env.PORT || 8080;
 app.use(express.static('public'));
-app.listen(HTTP_PORT, function() {
-    console.log(`Express http server listening on 8080`);
-  });
+const blogService = require('./blog-service');
+const { initialize } = require('./blog-service');
 app.get('/', function(req, res) {
   res.redirect('/about');
 });
 app.get('/about', function(req, res) {
   res.sendFile(__dirname + '/views/about.html');
 });
-//<script src="./blog-service.js" ></script>
-const blogService = require('./blog-service.js');
-//document.write("<script language=javascript src='blog-service.js'><\/script>");
-//kill -9 <8080>
-app.get('/blog', function(req, res) {
-  res.sendFile(__dirname + '/data/posts.json');
-})
-app.get('/posts', function(req, res) {
-  res.sendFile(__dirname + '/data/posts.json');
-})
-app.get('/categories', function(req, res) {
-  res.sendFile(__dirname + '/data/categories.json');
-})
-app.get('*', (req, res) => {
-  res.status(404).send('Page Not Found');
+app.get('/blog', (req, res) => {
+  const posts = blogService.getPublishedPostsSync();
+  res.send(posts);
 });
+
+app.get('/posts', (req, res) => {
+  const posts = blogService.getPosts();
+  res.send(posts);
+});
+
+//app.get('/categories', (req, res) => {
+ // const categories = blogService.getCategoriesSync();
+  //res.send(categories);
+//});
+app.get('/categories', (req, res) => {
+  try {
+    const categories = blogService.getCategoriesSync();
+    res.send(categories);
+  } catch (err) {
+    res.send({ message: err.message });
+  }
+});
+app.get('*', (req, res) => {
+  res.status(404).send('Page not found');
+});
+initialize()
+  .then(() => {
+    app.listen(HTTP_PORT, () => {
+      console.log(`Server is listening on port ${HTTP_PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.log(`Failed to initialize data: ${error}`);
+  });
